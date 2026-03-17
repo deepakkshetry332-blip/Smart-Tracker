@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ProAttend - Multi-Class System</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .active-glow { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden font-sans">
+
+    <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col justify-center items-center p-8">
+        <div class="w-full max-w-sm text-center">
+            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-3">
+                <i data-lucide="shield-check" class="text-white w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl font-black italic tracking-tighter">PROATTEND</h1>
+            <p id="auth-status-text" class="text-slate-400 text-sm mb-8">Please sign in to continue</p>
+            
+            <div class="space-y-3">
+                <input type="text" id="reg-name" placeholder="Your Full Name" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 hidden outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="email" id="auth-email" placeholder="Email Address" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="auth-pass" placeholder="Password" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <button onclick="handleAuth()" id="auth-btn" class="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition">Login</button>
+            <button onclick="toggleAuthMode()" id="auth-toggle" class="mt-4 text-sm font-semibold text-indigo-500">Don't have an account? Register</button>
+        </div>
+    </div>
+
+    <div id="app-ui" class="hidden flex-1 flex flex-col h-full max-w-md mx-auto w-full bg-white relative shadow-2xl">
+        
+        <header class="p-4 border-b flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+                <div id="user-avatar" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">U</div>
+                <div>
+                    <h2 id="user-name" class="font-bold text-slate-800 leading-none capitalize">User</h2>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Verified Student</span>
+                </div>
+            </div>
+            <button onclick="toggleAdminModal()" class="p-2 bg-slate-100 rounded-xl text-slate-600 active:bg-indigo-100 transition">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-5 pb-24 hide-scrollbar">
+            
+            <div class="mb-6">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Available Classes</label>
+                <select id="class-picker" class="w-full p-4 bg-slate-100 border-none rounded-2xl font-bold text-slate-700 outline-none ring-2 ring-transparent focus:ring-indigo-500 transition">
+                    <option value="">-- Select a Class --</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <button id="check-in-btn" onclick="triggerCheckIn()" class="bg-emerald-500 text-white p-6 rounded-[2rem] shadow-lg flex flex-col items-center gap-2 active:scale-95 transition">
+                    <i data-lucide="map-pin" class="w-8 h-8"></i>
+                    <span class="font-black uppercase text-xs">Sign In</span>
+                </button>
+                <button id="check-out-btn" onclick="triggerCheckOut()" disabled class="bg-slate-100 text-slate-400 p-6 rounded-[2rem] flex flex-col items-center gap-2 opacity-50 cursor-not-allowed transition">
+                    <i data-lucide="log-out" class="w-8 h-8"></i>
+                    <span class="font-black uppercase text-xs">Sign Out</span>
+                </button>
+            </div>
+
+            <div id="status-card" class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden transition-all duration-500">
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest">Live Logs</span>
+                        <div id="pulse-dot" class="w-2 h-2 bg-slate-500 rounded-full"></div>
+                    </div>
+                    <h3 id="status-heading" class="text-3xl font-black mb-1">Standby</h3>
+                    <p id="status-subtext" class="text-slate-400 text-sm">Select a class to begin</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="code-modal" class="hidden fixed inset-0 z-[70] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl">
+            <h3 class="font-black text-xl mb-2">Class Code</h3>
+            <p class="text-xs text-slate-400 mb-6">Ask your teacher for the 4-digit code</p>
+            <input type="number" id="verify-code-input" class="w-full text-center text-4xl font-black p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 mb-6" placeholder="0000">
+            <button onclick="confirmAttendance()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg">Verify & Sign In</button>
+            <button onclick="closeModals()" class="mt-4 text-slate-400 font-bold text-sm">Cancel</button>
+        </div>
+    </div>
+
+    <div id="admin-modal" class="hidden fixed inset-0 z-[60] bg-slate-50 flex flex-col p-6 overflow-y-auto">
+        <div class="max-w-md mx-auto w-full">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black">Admin Panel</h2>
+                <button onclick="toggleAdminModal()" class="p-2 bg-white rounded-xl shadow-sm"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="admin-lock-view" class="space-y-4">
+                <p class="text-slate-500 font-medium">Please enter the master PIN to access admin settings.</p>
+                <input type="password" id="admin-pin-field" class="w-full p-5 rounded-2xl border-none shadow-inner text-center text-2xl font-bold outline-none focus:ring-2 focus:ring-indigo-500" placeholder="****">
+                <button onclick="unlockAdmin()" class="w-full bg-slate-900 text-white font-bold py-5 rounded-2xl">Unlock Dashboard</button>
+            </div>
+
+            <div id="admin-controls" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="font-black text-sm uppercase tracking-widest text-indigo-600 mb-4">Classroom Geofencing</h4>
+                    <p class="text-xs text-slate-400 mb-4">Stand in the center of the classroom and click the button below to set the GPS center.</p>
+                    <button onclick="setAdminLocation()" class="w-full bg-indigo-50 text-indigo-600 font-bold py-3 rounded-xl border border-indigo-100 active:bg-indigo-600 active:text-white transition">📍 Set Current GPS Location</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="font-black text-sm uppercase tracking-widest text-purple-600 mb-4">Daily Attendance Code</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="admin-new-code" class="flex-1 p-3 bg-slate-50 rounded-xl font-bold border-none outline-none" placeholder="e.g. 5566">
+                        <button onclick="saveAdminCode()" class="bg-purple-600 text-white px-6 rounded-xl font-bold">Save</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <h4 class="font-black text-sm uppercase tracking-widest text-slate-800 mb-4">Manage Classes</h4>
+                    <div id="admin-class-items" class="space-y-2 mb-4"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="admin-add-class-input" class="flex-1 p-3 bg-slate-50 rounded-xl border-none outline-none" placeholder="Class Name">
+                        <button onclick="addNewClass()" class="bg-slate-900 text-white px-4 rounded-xl font-bold"><i data-lucide="plus"></i></button>
+                    </div>
+                </div>
+
+                <button onclick="auth.signOut()" class="w-full text-red-500 font-bold py-4">Sign Out from App</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLEcbCVwXbx_ei43FnZ67yKJOHO_IYpC4",
+            authDomain: "proattend-87ff1.firebaseapp.com",
+            projectId: "proattend-87ff1",
+            storageBucket: "proattend-87ff1.firebasestorage.app",
+            messagingSenderId: "886513362569",
+            appId: "1:886513362569:web:11822d359d1863c33d8858",
+            measurementId: "G-CVPRJW2BVC"
+        };
+
+        // INITIALIZE
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+        let isRegistering = false;
+        let adminSettings = { location: null, code: "0000" };
+        let activeSessionId = null;
+
+        // AUTHENTICATION LOGIC
+        function toggleAuthMode() {
+            isRegistering = !isRegistering;
+            document.getElementById('reg-name').classList.toggle('hidden', !isRegistering);
+            document.getElementById('auth-btn').innerText = isRegistering ? 'Create Account' : 'Login';
+            document.getElementById('auth-toggle').innerText = isRegistering ? 'Have an account? Login' : 'New User? Register';
+            document.getElementById('auth-status-text').innerText = isRegistering ? 'Join ProAttend' : 'Please sign in to continue';
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            const name = document.getElementById('reg-name').value;
+
+            try {
+                if(isRegistering) {
+                    const res = await auth.createUserWithEmailAndPassword(email, pass);
+                    await res.user.updateProfile({ displayName: name });
+                } else {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                }
+            } catch (e) { alert(e.message); }
+        }
+
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                currentUser = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-ui').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.displayName || 'Student';
+                document.getElementById('user-avatar').innerText = (user.displayName || 'S')[0].toUpperCase();
+                initAppData();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+            }
+        });
+
+        // DATA SYNC
+        function initAppData() {
+            // Watch Settings
+            db.collection('settings').doc('config').onSnapshot(doc => {
+                if(doc.exists) {
+                    adminSettings.location = doc.data().location;
+                    adminSettings.code = doc.data().dailyCode;
+                }
+            });
+
+            // Watch Classes
+            db.collection('settings').doc('classes').onSnapshot(doc => {
+                const list = doc.exists ? doc.data().list : [];
+                const picker = document.getElementById('class-picker');
+                const adminList = document.getElementById('admin-class-items');
+                
+                picker.innerHTML = '<option value="">-- Select a Class --</option>';
+                adminList.innerHTML = '';
+
+                list.forEach(cls => {
+                    picker.innerHTML += `<option value="${cls}">${cls}</option>`;
+                    adminList.innerHTML += `
+                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border">
+                            <span class="font-bold text-sm">${cls}</span>
+                            <button onclick="deleteClass('${cls}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>`;
+                });
+                lucide.createIcons();
+            });
+        }
+
+        // ATTENDANCE CORE
+        function triggerCheckIn() {
+            const cls = document.getElementById('class-picker').value;
+            if(!cls) return alert("Please select a class first!");
+            if(!adminSettings.location) return alert("Admin: Set office location first.");
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                const dist = calculateDistance(pos.coords.latitude, pos.coords.longitude, adminSettings.location.lat, adminSettings.location.lng);
+                
+                if(dist > 150) {
+                    return alert(`Out of range! You are ${Math.round(dist)} meters away from the classroom.`);
+                }
+                
+                document.getElementById('code-modal').classList.remove('hidden');
+            }, e => alert("GPS Error: Please enable location services."), {enableHighAccuracy: true});
+        }
+
+        async function confirmAttendance() {
+            const inputCode = document.getElementById('verify-code-input').value;
+            if(inputCode !== adminSettings.code) return alert("Invalid Class Code!");
+
+            const payload = {
+                uid: currentUser.uid,
+                studentName: currentUser.displayName,
+                className: document.getElementById('class-picker').value,
+                date: new Date().toLocaleDateString(),
+                timeIn: new Date().toLocaleTimeString(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'PRESENT'
+            };
+
+            const docRef = await db.collection('attendance').add(payload);
+            activeSessionId = docRef.id;
+
+            // UI Update
+            document.getElementById('code-modal').classList.add('hidden');
+            document.getElementById('check-in-btn').disabled = true;
+            document.getElementById('check-in-btn').style.opacity = "0.5";
+            document.getElementById('check-out-btn').disabled = false;
+            document.getElementById('check-out-btn').classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100', 'text-slate-400');
+            document.getElementById('check-out-btn').classList.add('bg-red-500', 'text-white', 'shadow-lg');
+            
+            document.getElementById('status-card').classList.replace('bg-slate-900', 'bg-emerald-600');
+            document.getElementById('status-heading').innerText = "Checked In";
+            document.getElementById('status-subtext').innerText = `Session: ${payload.className} at ${payload.timeIn}`;
+            document.getElementById('pulse-dot').classList.replace('bg-slate-500', 'bg-white');
+            document.getElementById('pulse-dot').classList.add('animate-pulse');
+        }
+
+        async function triggerCheckOut() {
+            if(!activeSessionId) return;
+            const timeOut = new Date().toLocaleTimeString();
+
+            await db.collection('attendance').doc(activeSessionId).update({
+                timeOut: timeOut,
+                status: 'COMPLETED'
+            });
+
+            // UI Reset
+            document.getElementById('check-out-btn').disabled = true;
+            document.getElementById('check-out-btn').style.opacity = "0.5";
+            document.getElementById('status-card').classList.replace('bg-emerald-600', 'bg-indigo-600');
+            document.getElementById('status-heading').innerText = "Session Ended";
+            document.getElementById('status-subtext').innerText = `Checked out successfully at ${timeOut}`;
+            document.getElementById('pulse-dot').classList.remove('animate-pulse');
+            alert("Attendance Session Completed!");
+        }
+
+        // ADMIN FUNCTIONS
+        function toggleAdminModal() { 
+            document.getElementById('admin-modal').classList.toggle('hidden');
+            document.getElementById('admin-lock-view').classList.remove('hidden');
+            document.getElementById('admin-controls').classList.add('hidden');
+            document.getElementById('admin-pin-field').value = '';
+        }
+
+        function unlockAdmin() {
+            if(document.getElementById('admin-pin-field').value === "8747") {
+                document.getElementById('admin-lock-view').classList.add('hidden');
+                document.getElementById('admin-controls').classList.remove('hidden');
+            } else { alert("Incorrect PIN!"); }
+        }
+
+        function setAdminLocation() {
+            navigator.geolocation.getCurrentPosition(async pos => {
+                await db.collection('settings').doc('config').set({
+                    location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+                }, { merge: true });
+                alert("Success: Classroom Center Point Saved!");
+            }, e => alert(e.message), {enableHighAccuracy: true});
+        }
+
+        async function saveAdminCode() {
+            const val = document.getElementById('admin-new-code').value;
+            if(!val) return;
+            await db.collection('settings').doc('config').set({ dailyCode: val }, { merge: true });
+            alert("Success: Attendance Code updated!");
+        }
+
+        async function addNewClass() {
+            const name = document.getElementById('admin-add-class-input').value;
+            if(!name) return;
+            const doc = await db.collection('settings').doc('classes').get();
+            let list = doc.exists ? doc.data().list : [];
+            if(!list.includes(name)) {
+                list.push(name);
+                await db.collection('settings').doc('classes').set({ list });
+                document.getElementById('admin-add-class-input').value = '';
+            }
+        }
+
+        async function deleteClass(name) {
+            const doc = await db.collection('settings').doc('classes').get();
+            let list = doc.data().list.filter(c => c !== name);
+            await db.collection('settings').doc('classes').set({ list });
+        }
+
+        // UTILS
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const p1 = lat1 * Math.PI/180;
+            const p2 = lat2 * Math.PI/180;
+            const dp = (lat2-lat1) * Math.PI/180;
+            const dl = (lon2-lon1) * Math.PI/180;
+            const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function closeModals() { document.getElementById('code-modal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
