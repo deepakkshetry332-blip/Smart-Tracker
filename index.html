@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ProAttend Ultimate</title>
+    <title>ProAttend - Multi-Class Pro</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,132 +22,135 @@
     <div id="login-screen" class="fixed inset-0 z-50 bg-white flex flex-col justify-center items-center p-8">
         <div class="w-full max-w-sm text-center">
             <h1 class="text-4xl font-black italic text-indigo-600 mb-2">ProAttend</h1>
-            <p id="auth-label" class="text-slate-400 mb-8">Secure Identity Verification</p>
+            <p id="auth-label" class="text-slate-400 mb-8 font-medium">Verify your identity</p>
             <div class="space-y-3">
                 <input type="text" id="reg-name" placeholder="Full Name" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 hidden outline-none focus:ring-2 focus:ring-indigo-500">
-                <input type="email" id="auth-email" placeholder="Email" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 outline-none">
+                <input type="email" id="auth-email" placeholder="Email Address" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 outline-none">
                 <input type="password" id="auth-pass" placeholder="Password" class="w-full px-5 py-4 rounded-2xl border bg-slate-50 outline-none">
             </div>
-            <button onclick="handleAuth()" id="auth-btn" class="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl">Login</button>
-            <button onclick="toggleAuthMode()" id="auth-toggle" class="mt-4 text-sm font-semibold text-indigo-500">New? Register Student</button>
+            <button onclick="handleAuth()" id="auth-btn" class="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition">Login</button>
+            <button onclick="toggleAuthMode()" id="auth-toggle" class="mt-4 text-sm font-semibold text-indigo-500 underline">New Student? Register Here</button>
         </div>
     </div>
 
-    <div id="app-ui" class="hidden flex-1 flex flex-col h-full max-w-md mx-auto w-full bg-white relative">
+    <div id="app-ui" class="hidden flex-1 flex flex-col h-full max-w-md mx-auto w-full bg-white relative shadow-2xl">
         <header class="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-10">
             <div class="flex items-center gap-3">
-                <div id="user-avatar" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xl">?</div>
+                <div id="user-avatar" class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-inner">?</div>
                 <div>
                     <h2 id="user-display-name" class="font-bold text-slate-800 leading-none">Student</h2>
-                    <span id="gps-indicator" class="text-[10px] text-red-500 font-bold uppercase">GPS: Waiting...</span>
+                    <span id="gps-indicator" class="text-[9px] text-red-500 font-black uppercase tracking-widest">GPS: Off</span>
                 </div>
             </div>
-            <button onclick="toggleAdminModal()" class="p-2 bg-slate-100 rounded-xl"><i data-lucide="shield-check"></i></button>
+            <button onclick="toggleAdminModal()" class="p-2 bg-slate-100 rounded-xl text-slate-600 active:scale-90 transition"><i data-lucide="shield-check"></i></button>
         </header>
 
         <main class="flex-1 overflow-y-auto p-5 pb-24 hide-scrollbar">
             <div class="mb-6">
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-center">Select Your Class</label>
-                <select id="class-picker" class="w-full p-4 bg-slate-100 border-none rounded-2xl font-bold text-center outline-none ring-2 ring-indigo-500/20 focus:ring-indigo-500">
-                    <option value="">-- Choose --</option>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-center">Current Session</label>
+                <select id="class-picker" class="w-full p-4 bg-slate-100 border-none rounded-2xl font-bold text-center outline-none ring-2 ring-indigo-500/10 focus:ring-indigo-500 transition">
+                    <option value="">-- Choose Class --</option>
                 </select>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-8">
-                <button id="btn-in" onclick="prepCheckIn()" class="bg-emerald-500 text-white p-6 rounded-3xl shadow-lg flex flex-col items-center gap-2 active:scale-95 transition">
-                    <i data-lucide="log-in"></i><span class="font-bold text-xs uppercase">Check In</span>
+                <button id="btn-in" onclick="startCheckProcess('IN')" class="bg-emerald-500 text-white p-6 rounded-3xl shadow-lg flex flex-col items-center gap-2 active:scale-95 transition hover:bg-emerald-600">
+                    <i data-lucide="map-pin"></i><span class="font-bold text-xs uppercase">Check In</span>
                 </button>
-                <button id="btn-out" onclick="prepCheckOut()" disabled class="bg-slate-100 text-slate-400 p-6 rounded-3xl flex flex-col items-center gap-2 opacity-50 cursor-not-allowed transition">
-                    <i data-lucide="log-out"></i><span class="font-bold text-xs uppercase">Check Out</span>
+                <button id="btn-out" onclick="startCheckProcess('OUT')" disabled class="bg-slate-100 text-slate-400 p-6 rounded-3xl flex flex-col items-center gap-2 opacity-50 cursor-not-allowed transition">
+                    <i data-lucide="clock"></i><span class="font-bold text-xs uppercase">Check Out</span>
                 </button>
             </div>
 
-            <div id="status-card" class="bg-slate-900 rounded-[2rem] p-6 text-white text-center">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Status</p>
-                <h3 id="status-text" class="text-2xl font-black italic mb-2">Ready</h3>
-                <div id="status-subtext" class="text-xs text-slate-500">Stand within 150m of center</div>
+            <div id="status-card" class="bg-slate-900 rounded-[2.5rem] p-8 text-white text-center transition-all duration-500">
+                <h3 id="status-text" class="text-3xl font-black italic mb-2">Standby</h3>
+                <p id="status-subtext" class="text-xs text-slate-400 leading-relaxed">Please select your class and ensure you are within range.</p>
             </div>
         </main>
     </div>
 
     <div id="code-modal" class="hidden fixed inset-0 z-[70] bg-slate-900/90 flex items-center justify-center p-6 backdrop-blur-md">
         <div class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h3 id="modal-title" class="font-black text-xl mb-2">Verify Code</h3>
-            <p id="modal-desc" class="text-xs text-slate-400 mb-6">Enter the 4-digit code from teacher</p>
-            <input type="number" id="pin-input" class="w-full text-center text-4xl font-black p-4 bg-slate-50 border-none rounded-2xl mb-6" placeholder="0000">
-            <button id="modal-confirm-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg">Verify & Proceed</button>
+            <h3 id="modal-title" class="font-black text-xl mb-2">Verification</h3>
+            <p id="modal-desc" class="text-xs text-slate-400 mb-6">Enter the class-specific code</p>
+            <input type="number" id="pin-input" class="w-full text-center text-4xl font-black p-4 bg-slate-50 border-none rounded-2xl mb-6 outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0000">
+            <button id="modal-confirm-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Verify Code</button>
             <button onclick="closeModal()" class="mt-4 text-slate-400 font-bold text-sm">Cancel</button>
         </div>
     </div>
 
     <div id="admin-modal" class="hidden fixed inset-0 z-[60] bg-slate-50 flex flex-col overflow-hidden">
         <header class="p-4 bg-white border-b flex justify-between items-center">
-            <h2 class="text-xl font-black">Admin Dashboard</h2>
+            <h2 class="text-xl font-black">Admin Suite</h2>
             <button onclick="toggleAdminModal()" class="p-2 text-slate-400"><i data-lucide="x"></i></button>
         </header>
 
-        <div id="admin-lock" class="flex-1 flex flex-col justify-center items-center p-8 text-center">
-            <div class="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4"><i data-lucide="lock"></i></div>
-            <h3 class="font-bold text-lg mb-4">Master Unlock</h3>
-            <input type="password" id="admin-master-pin" class="w-full max-w-xs p-4 bg-white border rounded-2xl text-center text-2xl font-bold mb-4" placeholder="****">
-            <button onclick="unlockAdmin()" class="w-full max-w-xs bg-slate-900 text-white font-bold py-4 rounded-2xl">Enter</button>
+        <div id="admin-lock" class="flex-1 flex flex-col justify-center items-center p-8 text-center bg-white">
+            <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mb-6 shadow-sm rotate-6">
+                <i data-lucide="lock" class="w-10 h-10"></i>
+            </div>
+            <h3 class="font-black text-2xl mb-2">Master Unlock</h3>
+            <p class="text-slate-400 mb-8 text-sm">Access restricted to authorized personnel</p>
+            <input type="password" id="admin-master-pin" class="w-full max-w-xs p-5 bg-slate-50 border rounded-2xl text-center text-3xl font-black mb-6" placeholder="****">
+            <button onclick="unlockAdmin()" class="w-full max-w-xs bg-slate-900 text-white font-bold py-5 rounded-2xl shadow-xl active:scale-95">Open Dashboard</button>
         </div>
 
         <div id="admin-pannel-content" class="hidden flex-1 flex flex-col overflow-hidden">
-            <div class="flex border-b bg-white">
-                <button onclick="showTab('settings')" class="flex-1 py-3 text-xs font-bold uppercase tracking-widest border-b-2 border-indigo-600 text-indigo-600">Config</button>
-                <button onclick="showTab('records')" class="flex-1 py-3 text-xs font-bold uppercase tracking-widest text-slate-400">Reports</button>
+            <div class="flex border-b bg-white text-[10px] font-black uppercase tracking-tighter">
+                <button onclick="showTab('settings')" class="flex-1 py-4 border-b-2 border-indigo-600 text-indigo-600">Settings</button>
+                <button onclick="showTab('students')" class="flex-1 py-4 text-slate-400">Students</button>
+                <button onclick="showTab('records')" class="flex-1 py-4 text-slate-400">Attendance</button>
             </div>
 
             <div id="tab-settings" class="tab-content active overflow-y-auto p-5 space-y-6">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border space-y-4">
-                    <button onclick="setCenterGPS()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">📍 Update GPS Center</button>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400">Check-In PIN</label>
-                            <input type="text" id="cfg-in-pin" class="w-full p-2 border rounded-lg text-center font-bold">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400">Check-Out PIN</label>
-                            <input type="text" id="cfg-out-pin" class="w-full p-2 border rounded-lg text-center font-bold">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold uppercase text-slate-400">Master Admin PIN</label>
-                        <input type="text" id="cfg-admin-pin" class="w-full p-2 border rounded-lg text-center font-bold">
-                    </div>
-                    <button onclick="saveAdminConfig()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save All Settings</button>
+                <div class="bg-white p-5 rounded-3xl shadow-sm border space-y-4">
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-indigo-600">1. Geofencing</h4>
+                    <button onclick="setCenterGPS()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">📍 Set GPS Center Here</button>
+                    
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-indigo-600 mt-6">2. Security</h4>
+                    <input type="text" id="cfg-admin-pin" placeholder="New Master PIN" class="w-full p-3 border rounded-xl text-center font-bold">
+                    <button onclick="saveMasterPin()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Update Master PIN</button>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-sm border">
-                    <h4 class="font-bold text-sm mb-3">Add Classes</h4>
-                    <div id="admin-class-list" class="space-y-2 mb-3"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-class-input" class="flex-1 p-2 bg-slate-50 border rounded-lg outline-none" placeholder="e.g. Physics B">
-                        <button onclick="addNewClass()" class="bg-indigo-600 text-white px-4 rounded-lg font-bold">+</button>
+                <div class="bg-white p-5 rounded-3xl shadow-sm border">
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-indigo-600 mb-4">3. Add Class (Multi-Session)</h4>
+                    <div class="space-y-3">
+                        <input type="text" id="new-class-name" placeholder="Class Name (e.g. Physics)" class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="new-class-in" placeholder="In PIN" class="p-3 bg-slate-50 border rounded-xl text-sm text-center font-bold">
+                            <input type="text" id="new-class-out" placeholder="Out PIN" class="p-3 bg-slate-50 border rounded-xl text-sm text-center font-bold">
+                        </div>
+                        <button onclick="addNewClass()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">+ Create Class</button>
                     </div>
+                    <div id="admin-class-list" class="mt-4 space-y-2"></div>
                 </div>
+            </div>
+
+            <div id="tab-students" class="tab-content overflow-y-auto p-5">
+                <div class="mb-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Registered Students</div>
+                <div id="student-directory-list" class="space-y-2"></div>
             </div>
 
             <div id="tab-records" class="tab-content overflow-y-auto p-5 flex flex-col h-full">
                 <div class="flex gap-2 mb-4">
-                    <input type="text" id="search-filter" oninput="renderAttendanceList()" class="flex-1 p-3 bg-white border rounded-xl text-sm outline-none" placeholder="Filter by Name/Class">
-                    <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-4 rounded-xl"><i data-lucide="download"></i></button>
+                    <input type="text" id="search-filter" oninput="renderAttendanceList()" class="flex-1 p-3 bg-white border rounded-xl text-sm outline-none" placeholder="Filter by Name or Class">
+                    <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-4 rounded-xl shadow-lg active:scale-90 transition"><i data-lucide="download"></i></button>
                 </div>
-                <div id="live-attendance-list" class="space-y-2 flex-1 overflow-y-auto"></div>
+                <div id="live-attendance-list" class="space-y-2 flex-1 overflow-y-auto pb-10"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // FIREBASE CONFIG
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyCLEcbCVwXbx_ei43FnZ67yKJOHO_IYpC4",
             authDomain: "proattend-87ff1.firebaseapp.com",
             projectId: "proattend-87ff1",
             storageBucket: "proattend-87ff1.firebasestorage.app",
             messagingSenderId: "886513362569",
-            appId: "1:886513362569:web:11822d359d1863c33d8858"
+            appId: "1:886513362569:web:11822d359d1863c33d8858",
+            measurementId: "G-CVPRJW2BVC"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -155,17 +158,19 @@
         const auth = firebase.auth();
 
         let user = null;
-        let isReg = false;
-        let config = { in: "1111", out: "2222", admin: "8747", loc: null };
+        let isRegMode = false;
+        let masterPin = "8747";
+        let gpsCenter = null;
+        let activeClasses = [];
         let activeRecId = null;
-        let attendanceData = [];
+        let allAttendance = [];
 
-        // AUTH
+        // AUTH LOGIC
         function toggleAuthMode() {
-            isReg = !isReg;
-            document.getElementById('reg-name').classList.toggle('hidden', !isReg);
-            document.getElementById('auth-btn').innerText = isReg ? 'Register Student' : 'Login';
-            document.getElementById('auth-toggle').innerText = isReg ? 'Back to Login' : 'New? Register Student';
+            isRegMode = !isRegMode;
+            document.getElementById('reg-name').classList.toggle('hidden', !isRegMode);
+            document.getElementById('auth-btn').innerText = isRegMode ? 'Create Account' : 'Login';
+            document.getElementById('auth-toggle').innerText = isRegMode ? 'Already have an account? Login' : 'New Student? Register Here';
         }
 
         async function handleAuth() {
@@ -173,9 +178,11 @@
             const pass = document.getElementById('auth-pass').value;
             const name = document.getElementById('reg-name').value;
             try {
-                if(isReg) {
+                if(isRegMode) {
                     const res = await auth.createUserWithEmailAndPassword(email, pass);
                     await res.user.updateProfile({ displayName: name });
+                    // Save to directory
+                    await db.collection('students').doc(res.user.uid).set({ name, email, joined: new Date().toLocaleDateString() });
                 } else { await auth.signInWithEmailAndPassword(email, pass); }
             } catch(e) { alert(e.message); }
         }
@@ -187,64 +194,83 @@
                 document.getElementById('app-ui').classList.remove('hidden');
                 document.getElementById('user-display-name').innerText = u.displayName || 'Student';
                 document.getElementById('user-avatar').innerText = (u.displayName || 'U')[0].toUpperCase();
-                startSync();
+                startLiveSync();
             } else { document.getElementById('login-screen').classList.remove('hidden'); }
         });
 
-        // CORE SYNC
-        function startSync() {
+        // DATA SYNC
+        function startLiveSync() {
+            // Sync Master Settings
             db.collection('settings').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
-                    const d = doc.data();
-                    config = { in: d.dailyIn, out: d.dailyOut, admin: d.adminPin || "8747", loc: d.location };
-                    document.getElementById('cfg-in-pin').value = config.in;
-                    document.getElementById('cfg-out-pin').value = config.out;
-                    document.getElementById('cfg-admin-pin').value = config.admin;
-                    document.getElementById('gps-indicator').innerText = config.loc ? "GPS: Active" : "GPS: Not Set";
-                    document.getElementById('gps-indicator').className = config.loc ? "text-[10px] text-emerald-500 font-bold uppercase" : "text-[10px] text-red-500 font-bold uppercase";
+                    masterPin = doc.data().adminPin || "8747";
+                    gpsCenter = doc.data().location;
+                    document.getElementById('cfg-admin-pin').value = masterPin;
+                    document.getElementById('gps-indicator').innerText = gpsCenter ? "GPS: Active" : "GPS: Not Set";
+                    document.getElementById('gps-indicator').className = gpsCenter ? "text-[9px] text-emerald-500 font-black uppercase tracking-widest" : "text-[9px] text-red-500 font-black uppercase tracking-widest";
                 }
             });
 
+            // Sync Classes
             db.collection('settings').doc('classes').onSnapshot(doc => {
-                const list = doc.exists ? doc.data().list : [];
+                activeClasses = doc.exists ? doc.data().fullData : [];
                 const picker = document.getElementById('class-picker');
                 const adminList = document.getElementById('admin-class-list');
-                picker.innerHTML = '<option value="">-- Choose --</option>';
+                picker.innerHTML = '<option value="">-- Choose Class --</option>';
                 adminList.innerHTML = '';
-                list.forEach(c => {
-                    picker.innerHTML += `<option value="${c}">${c}</option>`;
-                    adminList.innerHTML += `<div class="flex justify-between p-2 bg-slate-50 border rounded-lg text-xs font-bold"><span>${c}</span><button onclick="deleteClass('${c}')" class="text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button></div>`;
+                
+                activeClasses.forEach(c => {
+                    picker.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                    adminList.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 border rounded-xl text-xs font-bold items-center"><div><p>${c.name}</p><p class="text-[9px] text-indigo-500 uppercase">In: ${c.inPin} | Out: ${c.outPin}</p></div><button onclick="deleteClass('${c.name}')" class="text-red-500 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
                 });
                 lucide.createIcons();
             });
 
+            // Sync Students
+            db.collection('students').onSnapshot(snap => {
+                const list = document.getElementById('student-directory-list');
+                list.innerHTML = '';
+                snap.forEach(doc => {
+                    const s = doc.data();
+                    list.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center gap-3"><div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-400">${s.name[0]}</div><div class="text-xs font-bold"><p>${s.name}</p><p class="text-slate-400 font-medium">${s.email}</p></div></div>`;
+                });
+            });
+
+            // Sync Attendance Records
             db.collection('attendance').orderBy('timestamp', 'desc').onSnapshot(snap => {
-                attendanceData = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                allAttendance = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderAttendanceList();
             });
         }
 
-        // ATTENDANCE ACTIONS
-        function prepCheckIn() {
-            if(!document.getElementById('class-picker').value) return alert("Select a class!");
-            if(!config.loc) return alert("Admin: Set location first!");
-            
+        // ATTENDANCE CORE
+        function startCheckProcess(type) {
+            const clsName = document.getElementById('class-picker').value;
+            if(!clsName) return alert("Please select a class first!");
+            if(!gpsCenter) return alert("Admin error: GPS center not set.");
+
             navigator.geolocation.getCurrentPosition(pos => {
-                const d = calcDist(pos.coords.latitude, pos.coords.longitude, config.loc.lat, config.loc.lng);
-                if(d > 150) return alert(`Range Error: You are ${Math.round(d)}m away.`);
-                
-                showCodeModal("Check-In Verification", "Enter Check-In Code", () => {
-                    if(document.getElementById('pin-input').value === config.in) executeCheckIn();
-                    else alert("Invalid Code");
+                const distance = calcDistance(pos.coords.latitude, pos.coords.longitude, gpsCenter.lat, gpsCenter.lng);
+                if(distance > 150) return alert(`Out of range! You are ${Math.round(distance)}m away.`);
+
+                const classObj = activeClasses.find(c => c.name === clsName);
+                showCodeModal(type === 'IN' ? "Check-In" : "Check-Out", `Enter code for ${clsName}`, () => {
+                    const input = document.getElementById('pin-input').value;
+                    const correctPin = type === 'IN' ? classObj.inPin : classObj.outPin;
+                    
+                    if(input === correctPin) {
+                        type === 'IN' ? executeIn(clsName) : executeOut();
+                        closeModal();
+                    } else { alert("Invalid PIN for this class!"); }
                 });
-            }, e => alert("Enable GPS Permissions"), {enableHighAccuracy: true});
+            }, e => alert("Please enable GPS"), {enableHighAccuracy: true});
         }
 
-        async function executeCheckIn() {
+        async function executeIn(cls) {
             const rec = {
                 uid: user.uid,
                 name: user.displayName,
-                className: document.getElementById('class-picker').value,
+                className: cls,
                 date: new Date().toLocaleDateString(),
                 timeIn: new Date().toLocaleTimeString(),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -252,39 +278,27 @@
             };
             const d = await db.collection('attendance').add(rec);
             activeRecId = d.id;
-            updateStatusUI('IN', rec.timeIn);
-            closeModal();
+            updateStatusUI('IN', rec.timeIn, cls);
         }
 
-        function prepCheckOut() {
-            showCodeModal("Check-Out Verification", "Enter Check-Out Code", () => {
-                if(document.getElementById('pin-input').value === config.out) executeCheckOut();
-                else alert("Invalid Code");
-            });
-        }
-
-        async function executeCheckOut() {
+        async function executeOut() {
             const timeOut = new Date().toLocaleTimeString();
             await db.collection('attendance').doc(activeRecId).update({ timeOut, status: 'COMPLETED' });
             updateStatusUI('OUT', timeOut);
-            closeModal();
         }
 
-        // ADMIN LOGIC
+        // ADMIN CONTROLS
         function unlockAdmin() {
-            if(document.getElementById('admin-master-pin').value === config.admin) {
+            if(document.getElementById('admin-master-pin').value === masterPin) {
                 document.getElementById('admin-lock').classList.add('hidden');
                 document.getElementById('admin-pannel-content').classList.remove('hidden');
-            } else alert("Access Denied");
+            } else { alert("Wrong Master PIN!"); }
         }
 
-        async function saveAdminConfig() {
-            await db.collection('settings').doc('config').set({
-                dailyIn: document.getElementById('cfg-in-pin').value,
-                dailyOut: document.getElementById('cfg-out-pin').value,
-                adminPin: document.getElementById('cfg-admin-pin').value
-            }, {merge: true});
-            alert("Configuration Updated!");
+        async function saveMasterPin() {
+            const pin = document.getElementById('cfg-admin-pin').value;
+            await db.collection('settings').doc('config').set({ adminPin: pin }, {merge: true});
+            alert("Master PIN Updated!");
         }
 
         async function setCenterGPS() {
@@ -292,28 +306,43 @@
                 await db.collection('settings').doc('config').set({
                     location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
                 }, {merge: true});
-                alert("Location Locked to Current Position!");
+                alert("GPS Center Updated!");
             }, e => alert(e.message), {enableHighAccuracy: true});
+        }
+
+        async function addNewClass() {
+            const name = document.getElementById('new-class-name').value;
+            const inPin = document.getElementById('new-class-in').value;
+            const outPin = document.getElementById('new-class-out').value;
+            if(!name || !inPin || !outPin) return alert("Fill all class details!");
+            
+            const list = [...activeClasses, { name, inPin, outPin }];
+            await db.collection('settings').doc('classes').set({ fullData: list });
+            document.getElementById('new-class-name').value = '';
+            document.getElementById('new-class-in').value = '';
+            document.getElementById('new-class-out').value = '';
+        }
+
+        async function deleteClass(name) {
+            const list = activeClasses.filter(c => c.name !== name);
+            await db.collection('settings').doc('classes').set({ fullData: list });
         }
 
         function exportToExcel() {
             let csv = "Name,Class,Date,Time In,Time Out,Status\n";
-            attendanceData.forEach(r => {
+            allAttendance.forEach(r => {
                 csv += `${r.name},${r.className},${r.date},${r.timeIn},${r.timeOut || '-'},${r.status}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `Attendance_Report_${new Date().toLocaleDateString()}.csv`);
-            document.body.appendChild(a);
+            a.href = url;
+            a.download = `Attendance_Report_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
-            document.body.removeChild(a);
         }
 
         // UTILS
-        function calcDist(lat1, lon1, lat2, lon2) {
+        function calcDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
             const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
             const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
@@ -321,32 +350,35 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function showTab(t) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + t).classList.add('active');
-        }
-
         function renderAttendanceList() {
             const list = document.getElementById('live-attendance-list');
             const search = document.getElementById('search-filter').value.toLowerCase();
             list.innerHTML = '';
-            attendanceData.filter(r => r.name.toLowerCase().includes(search) || r.className.toLowerCase().includes(search)).forEach(r => {
-                list.innerHTML += `<div class="bg-white p-3 rounded-xl border flex justify-between items-center"><div class="text-xs"><p class="font-black">${r.name}</p><p class="text-slate-400">${r.className} | ${r.date}</p></div><div class="text-[10px] font-bold text-indigo-600 px-2 py-1 bg-indigo-50 rounded">${r.timeIn} - ${r.timeOut || '...'}</div></div>`;
+            allAttendance.filter(r => r.name.toLowerCase().includes(search) || r.className.toLowerCase().includes(search)).forEach(r => {
+                list.innerHTML += `<div class="bg-white p-3 rounded-2xl border flex justify-between items-center shadow-sm"><div class="text-xs font-black"><p>${r.name}</p><p class="text-slate-400 font-medium">${r.className} | ${r.date}</p></div><div class="text-[9px] font-black text-indigo-600 px-3 py-1 bg-indigo-50 rounded-full">${r.timeIn} - ${r.timeOut || '...'}</div></div>`;
             });
         }
 
-        function updateStatusUI(type, time) {
+        function updateStatusUI(type, time, cls) {
             const btnIn = document.getElementById('btn-in'), btnOut = document.getElementById('btn-out');
-            const stat = document.getElementById('status-text'), sub = document.getElementById('status-subtext');
+            const stat = document.getElementById('status-text'), sub = document.getElementById('status-subtext'), card = document.getElementById('status-card');
             if(type === 'IN') {
                 btnIn.disabled = true; btnIn.style.opacity = '0.5';
-                btnOut.disabled = false; btnOut.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnOut.disabled = false; btnOut.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100', 'text-slate-400');
                 btnOut.classList.add('bg-red-500', 'text-white');
-                stat.innerText = "Check-In Success"; sub.innerText = "Active since " + time;
+                stat.innerText = "Check-In Success"; sub.innerText = `Class: ${cls} | Time: ${time}`;
+                card.classList.replace('bg-slate-900', 'bg-indigo-600');
             } else {
                 btnOut.disabled = true; btnOut.style.opacity = '0.5';
-                stat.innerText = "Check-Out Success"; sub.innerText = "Completed at " + time;
+                stat.innerText = "Check-Out Success"; sub.innerText = `Final Session ended at ${time}`;
+                card.classList.replace('bg-indigo-600', 'bg-emerald-600');
             }
+        }
+
+        function showTab(t) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + t).classList.add('active');
+            document.querySelectorAll('#admin-pannel-content button').forEach(b => b.classList.remove('border-indigo-600', 'text-indigo-600'));
         }
 
         function showCodeModal(title, desc, action) {
@@ -363,15 +395,6 @@
             document.getElementById('admin-lock').classList.remove('hidden');
             document.getElementById('admin-pannel-content').classList.add('hidden');
             document.getElementById('admin-master-pin').value = '';
-        }
-        async function addNewClass() {
-            const name = document.getElementById('new-class-input').value;
-            if(!name) return;
-            const doc = await db.collection('settings').doc('classes').get();
-            let list = doc.exists ? doc.data().list : [];
-            list.push(name);
-            await db.collection('settings').doc('classes').set({ list });
-            document.getElementById('new-class-input').value = '';
         }
     </script>
 </body>
