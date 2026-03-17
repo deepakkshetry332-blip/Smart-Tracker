@@ -15,6 +15,7 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .admin-btn-gradient { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 h-screen flex flex-col overflow-hidden">
@@ -79,10 +80,13 @@
         </div>
     </div>
 
-    <div id="admin-modal" class="hidden fixed inset-0 z-[60] bg-slate-50 flex flex-col overflow-hidden">
-        <header class="p-4 bg-white border-b flex justify-between items-center">
-            <h2 class="text-xl font-black">Admin Suite</h2>
-            <button onclick="toggleAdminModal()" class="p-2 text-slate-400"><i data-lucide="x"></i></button>
+    <div id="admin-modal" class="hidden fixed inset-0 z-[60] bg-white flex flex-col overflow-hidden">
+        <header class="p-4 bg-white border-b flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAdminModal()" class="p-2 hover:bg-slate-100 rounded-full transition"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+                <h2 class="text-2xl font-black tracking-tight">Admin Suite</h2>
+            </div>
+            <button onclick="toggleAdminModal()" class="p-2 text-slate-400 hover:text-red-500 transition"><i data-lucide="x"></i></button>
         </header>
 
         <div id="admin-lock" class="flex-1 flex flex-col justify-center items-center p-8 text-center bg-white">
@@ -96,47 +100,47 @@
         </div>
 
         <div id="admin-pannel-content" class="hidden flex-1 flex flex-col overflow-hidden">
-            <div class="flex border-b bg-white text-[10px] font-black uppercase tracking-tighter">
-                <button onclick="showTab('settings')" class="flex-1 py-4 border-b-2 border-indigo-600 text-indigo-600">Settings</button>
-                <button onclick="showTab('students')" class="flex-1 py-4 text-slate-400">Students</button>
-                <button onclick="showTab('records')" class="flex-1 py-4 text-slate-400">Attendance</button>
+            <div class="flex border-b bg-white text-[11px] font-black uppercase tracking-wider">
+                <button onclick="showTab('settings')" id="btn-tab-settings" class="flex-1 py-4 border-b-2 border-indigo-600 text-indigo-600">Settings</button>
+                <button onclick="showTab('students')" id="btn-tab-students" class="flex-1 py-4 text-slate-400">Students</button>
+                <button onclick="showTab('records')" id="btn-tab-records" class="flex-1 py-4 text-slate-400">Attendance</button>
             </div>
 
-            <div id="tab-settings" class="tab-content active overflow-y-auto p-5 space-y-6">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border space-y-4">
-                    <h4 class="font-bold text-xs uppercase tracking-widest text-indigo-600">1. Geofencing</h4>
-                    <button onclick="setCenterGPS()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">📍 Set GPS Center Here</button>
+            <div id="tab-settings" class="tab-content active overflow-y-auto p-5 space-y-6 bg-slate-50/50">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border space-y-4">
+                    <h4 class="font-black text-[11px] uppercase tracking-widest text-indigo-500">1. Geofencing</h4>
+                    <button onclick="setCenterGPS()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100">📍 Set GPS Center Here</button>
                     
-                    <h4 class="font-bold text-xs uppercase tracking-widest text-indigo-600 mt-6">2. Security</h4>
-                    <input type="text" id="cfg-admin-pin" placeholder="New Master PIN" class="w-full p-3 border rounded-xl text-center font-bold">
-                    <button onclick="saveMasterPin()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Update Master PIN</button>
+                    <h4 class="font-black text-[11px] uppercase tracking-widest text-indigo-500 mt-6">2. Security</h4>
+                    <input type="text" id="cfg-admin-pin" placeholder="New Master PIN" class="w-full p-4 border rounded-2xl text-center font-bold">
+                    <button onclick="saveMasterPin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg">Update Master PIN</button>
                 </div>
 
-                <div class="bg-white p-5 rounded-3xl shadow-sm border">
-                    <h4 class="font-bold text-xs uppercase tracking-widest text-indigo-600 mb-4">3. Add Class (Multi-Session)</h4>
-                    <div class="space-y-3">
-                        <input type="text" id="new-class-name" placeholder="Class Name (e.g. Physics)" class="w-full p-3 bg-slate-50 border rounded-xl text-sm outline-none">
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="text" id="new-class-in" placeholder="In PIN" class="p-3 bg-slate-50 border rounded-xl text-sm text-center font-bold">
-                            <input type="text" id="new-class-out" placeholder="Out PIN" class="p-3 bg-slate-50 border rounded-xl text-sm text-center font-bold">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border">
+                    <h4 class="font-black text-[11px] uppercase tracking-widest text-indigo-500 mb-5">3. ADD CLASS (MULTI-SESSION)</h4>
+                    <div class="space-y-4">
+                        <input type="text" id="new-class-name" placeholder="Class Name (e.g. CST)" class="w-full p-4 bg-slate-50 border rounded-2xl text-lg font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="new-class-in" placeholder="In PIN" class="p-4 bg-slate-50 border rounded-2xl text-lg text-center font-bold outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="number" id="new-class-out" placeholder="Out PIN" class="p-4 bg-slate-50 border rounded-2xl text-lg text-center font-bold outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
-                        <button onclick="addNewClass()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">+ Create Class</button>
+                        <button onclick="addNewClass()" class="w-full admin-btn-gradient text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 active:scale-95 transition">+ Create Class</button>
                     </div>
-                    <div id="admin-class-list" class="mt-4 space-y-2"></div>
+                    <div id="admin-class-list" class="mt-8 space-y-3"></div>
                 </div>
             </div>
 
-            <div id="tab-students" class="tab-content overflow-y-auto p-5">
-                <div class="mb-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Registered Students</div>
-                <div id="student-directory-list" class="space-y-2"></div>
+            <div id="tab-students" class="tab-content overflow-y-auto p-5 bg-slate-50/50 h-full">
+                <div class="mb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Student Directory</div>
+                <div id="student-directory-list" class="space-y-3"></div>
             </div>
 
-            <div id="tab-records" class="tab-content overflow-y-auto p-5 flex flex-col h-full">
-                <div class="flex gap-2 mb-4">
-                    <input type="text" id="search-filter" oninput="renderAttendanceList()" class="flex-1 p-3 bg-white border rounded-xl text-sm outline-none" placeholder="Filter by Name or Class">
-                    <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-4 rounded-xl shadow-lg active:scale-90 transition"><i data-lucide="download"></i></button>
+            <div id="tab-records" class="tab-content overflow-y-auto p-5 flex flex-col h-full bg-slate-50/50">
+                <div class="flex gap-3 mb-6">
+                    <input type="text" id="search-filter" oninput="renderAttendanceList()" class="flex-1 p-4 bg-white border rounded-2xl text-sm outline-none shadow-sm focus:ring-2 focus:ring-indigo-500" placeholder="Filter by Name or Class">
+                    <button onclick="exportToExcel()" class="bg-emerald-500 text-white px-5 rounded-2xl shadow-lg active:scale-90 transition"><i data-lucide="download"></i></button>
                 </div>
-                <div id="live-attendance-list" class="space-y-2 flex-1 overflow-y-auto pb-10"></div>
+                <div id="live-attendance-list" class="space-y-3 flex-1 overflow-y-auto pb-10"></div>
             </div>
         </div>
     </div>
@@ -165,7 +169,7 @@
         let activeRecId = null;
         let allAttendance = [];
 
-        // AUTH LOGIC
+        // AUTH
         function toggleAuthMode() {
             isRegMode = !isRegMode;
             document.getElementById('reg-name').classList.toggle('hidden', !isRegMode);
@@ -181,7 +185,6 @@
                 if(isRegMode) {
                     const res = await auth.createUserWithEmailAndPassword(email, pass);
                     await res.user.updateProfile({ displayName: name });
-                    // Save to directory
                     await db.collection('students').doc(res.user.uid).set({ name, email, joined: new Date().toLocaleDateString() });
                 } else { await auth.signInWithEmailAndPassword(email, pass); }
             } catch(e) { alert(e.message); }
@@ -198,9 +201,8 @@
             } else { document.getElementById('login-screen').classList.remove('hidden'); }
         });
 
-        // DATA SYNC
+        // LIVE SYNC
         function startLiveSync() {
-            // Sync Master Settings
             db.collection('settings').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
                     masterPin = doc.data().adminPin || "8747";
@@ -211,7 +213,6 @@
                 }
             });
 
-            // Sync Classes
             db.collection('settings').doc('classes').onSnapshot(doc => {
                 activeClasses = doc.exists ? doc.data().fullData : [];
                 const picker = document.getElementById('class-picker');
@@ -221,29 +222,27 @@
                 
                 activeClasses.forEach(c => {
                     picker.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                    adminList.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 border rounded-xl text-xs font-bold items-center"><div><p>${c.name}</p><p class="text-[9px] text-indigo-500 uppercase">In: ${c.inPin} | Out: ${c.outPin}</p></div><button onclick="deleteClass('${c.name}')" class="text-red-500 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
+                    adminList.innerHTML += `<div class="flex justify-between p-4 bg-slate-50 border rounded-2xl font-bold items-center shadow-sm"><div><p class="text-slate-800">${c.name}</p><p class="text-[9px] text-indigo-500 uppercase font-black">Codes: ${c.inPin} / ${c.outPin}</p></div><button onclick="deleteClass('${c.name}')" class="text-red-400 p-2 hover:bg-red-50 rounded-xl transition"><i data-lucide="trash-2" class="w-5 h-5"></i></button></div>`;
                 });
                 lucide.createIcons();
             });
 
-            // Sync Students
             db.collection('students').onSnapshot(snap => {
                 const list = document.getElementById('student-directory-list');
                 list.innerHTML = '';
                 snap.forEach(doc => {
                     const s = doc.data();
-                    list.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center gap-3"><div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-400">${s.name[0]}</div><div class="text-xs font-bold"><p>${s.name}</p><p class="text-slate-400 font-medium">${s.email}</p></div></div>`;
+                    list.innerHTML += `<div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center gap-4"><div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black text-lg">${s.name[0]}</div><div><p class="font-bold text-slate-800">${s.name}</p><p class="text-xs text-slate-400 font-medium">${s.email}</p></div></div>`;
                 });
             });
 
-            // Sync Attendance Records
             db.collection('attendance').orderBy('timestamp', 'desc').onSnapshot(snap => {
                 allAttendance = snap.docs.map(d => ({id: d.id, ...d.data()}));
                 renderAttendanceList();
             });
         }
 
-        // ATTENDANCE CORE
+        // ATTENDANCE LOGIC
         function startCheckProcess(type) {
             const clsName = document.getElementById('class-picker').value;
             if(!clsName) return alert("Please select a class first!");
@@ -258,7 +257,7 @@
                     const input = document.getElementById('pin-input').value;
                     const correctPin = type === 'IN' ? classObj.inPin : classObj.outPin;
                     
-                    if(input === correctPin) {
+                    if(input == correctPin) {
                         type === 'IN' ? executeIn(clsName) : executeOut();
                         closeModal();
                     } else { alert("Invalid PIN for this class!"); }
@@ -267,15 +266,7 @@
         }
 
         async function executeIn(cls) {
-            const rec = {
-                uid: user.uid,
-                name: user.displayName,
-                className: cls,
-                date: new Date().toLocaleDateString(),
-                timeIn: new Date().toLocaleTimeString(),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'PRESENT'
-            };
+            const rec = { uid: user.uid, name: user.displayName, className: cls, date: new Date().toLocaleDateString(), timeIn: new Date().toLocaleTimeString(), timestamp: firebase.firestore.FieldValue.serverTimestamp(), status: 'PRESENT' };
             const d = await db.collection('attendance').add(rec);
             activeRecId = d.id;
             updateStatusUI('IN', rec.timeIn, cls);
@@ -287,7 +278,7 @@
             updateStatusUI('OUT', timeOut);
         }
 
-        // ADMIN CONTROLS
+        // ADMIN FUNCTIONS
         function unlockAdmin() {
             if(document.getElementById('admin-master-pin').value === masterPin) {
                 document.getElementById('admin-lock').classList.add('hidden');
@@ -303,9 +294,7 @@
 
         async function setCenterGPS() {
             navigator.geolocation.getCurrentPosition(async pos => {
-                await db.collection('settings').doc('config').set({
-                    location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
-                }, {merge: true});
+                await db.collection('settings').doc('config').set({ location: { lat: pos.coords.latitude, lng: pos.coords.longitude } }, {merge: true});
                 alert("GPS Center Updated!");
             }, e => alert(e.message), {enableHighAccuracy: true});
         }
@@ -330,9 +319,7 @@
 
         function exportToExcel() {
             let csv = "Name,Class,Date,Time In,Time Out,Status\n";
-            allAttendance.forEach(r => {
-                csv += `${r.name},${r.className},${r.date},${r.timeIn},${r.timeOut || '-'},${r.status}\n`;
-            });
+            allAttendance.forEach(r => { csv += `${r.name},${r.className},${r.date},${r.timeIn},${r.timeOut || '-'},${r.status}\n`; });
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -341,7 +328,25 @@
             a.click();
         }
 
-        // UTILS
+        // NAVIGATION & UI
+        function showTab(t) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + t).classList.add('active');
+            document.querySelectorAll('#admin-pannel-content button').forEach(b => b.classList.remove('border-indigo-600', 'text-indigo-600'));
+            document.getElementById('btn-tab-' + t).classList.add('border-indigo-600', 'text-indigo-600');
+        }
+
+        function toggleAdminModal() { 
+            const modal = document.getElementById('admin-modal');
+            modal.classList.toggle('hidden');
+            if(!modal.classList.contains('hidden')) {
+                document.getElementById('admin-lock').classList.remove('hidden');
+                document.getElementById('admin-pannel-content').classList.add('hidden');
+                document.getElementById('admin-master-pin').value = '';
+            }
+            lucide.createIcons();
+        }
+
         function calcDistance(lat1, lon1, lat2, lon2) {
             const R = 6371e3;
             const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
@@ -355,7 +360,7 @@
             const search = document.getElementById('search-filter').value.toLowerCase();
             list.innerHTML = '';
             allAttendance.filter(r => r.name.toLowerCase().includes(search) || r.className.toLowerCase().includes(search)).forEach(r => {
-                list.innerHTML += `<div class="bg-white p-3 rounded-2xl border flex justify-between items-center shadow-sm"><div class="text-xs font-black"><p>${r.name}</p><p class="text-slate-400 font-medium">${r.className} | ${r.date}</p></div><div class="text-[9px] font-black text-indigo-600 px-3 py-1 bg-indigo-50 rounded-full">${r.timeIn} - ${r.timeOut || '...'}</div></div>`;
+                list.innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><div class="text-xs font-black"><p class="text-slate-800">${r.name}</p><p class="text-slate-400 font-medium">${r.className} | ${r.date}</p></div><div class="text-[10px] font-black text-indigo-600 px-3 py-1 bg-indigo-50 rounded-full">${r.timeIn} - ${r.timeOut || '...'}</div></div>`;
             });
         }
 
@@ -375,12 +380,6 @@
             }
         }
 
-        function showTab(t) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + t).classList.add('active');
-            document.querySelectorAll('#admin-pannel-content button').forEach(b => b.classList.remove('border-indigo-600', 'text-indigo-600'));
-        }
-
         function showCodeModal(title, desc, action) {
             document.getElementById('code-modal').classList.remove('hidden');
             document.getElementById('modal-title').innerText = title;
@@ -390,12 +389,8 @@
         }
 
         function closeModal() { document.getElementById('code-modal').classList.add('hidden'); }
-        function toggleAdminModal() { 
-            document.getElementById('admin-modal').classList.toggle('hidden');
-            document.getElementById('admin-lock').classList.remove('hidden');
-            document.getElementById('admin-pannel-content').classList.add('hidden');
-            document.getElementById('admin-master-pin').value = '';
-        }
+        
+        lucide.createIcons();
     </script>
 </body>
 </html>
